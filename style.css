@@ -27,3 +27,38 @@ font-weight: bold;
 color: #fd0d0d;
 /* warna biru */
 }
+
+.ahk-status-pill {
+border: 1px solid #d0d7de;
+border-radius: 999px;
+background: #fff8db;
+color: #6f4e00;
+font-size: 0.85rem;
+font-weight: 700;
+line-height: 1;
+padding: 0.45rem 0.65rem;
+}
+
+.ahk-status-pill.status-ok {
+background: #dcfce7;
+border-color: #86efac;
+color: #166534;
+}
+
+.ahk-status-pill.status-error {
+background: #fee2e2;
+border-color: #fca5a5;
+color: #991b1b;
+}
+
+.ahk-status-pill.status-offline {
+background: #f1f5f9;
+border-color: #cbd5e1;
+color: #475569;
+}
+
+.ahk-status-pill.status-checking {
+background: #fef9c3;
+border-color: #fde047;
+color: #854d0e;
+}

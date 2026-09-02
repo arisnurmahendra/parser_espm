@@ -18,7 +18,7 @@ let pdfTable;
 
 /** @type {Array<Object>} Menyimpan semua data dari hasil parsing PDF atau JSON. */
 let allData;
-let sheetUrl = 'https://opensheet.elk.sh/SpreadsheetID/datadb'; // Ganti SpreadsheetID dengan Spreadsheet ID Anda sendiri misal '1aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890'
+let sheetUrl = 'https://opensheet.elk.sh/11TIOO7fJaYg_8A63p-jvXa-kAn-MyI47LP1H7z9W2hQ/datadb';
 let app_version = '1.0.8';
 let app_packet = 'parser_espm';
 
@@ -26,47 +26,52 @@ let lastParseErrors = []; // Array object error detail
 let lastParseSuccessCount = 0;
 let lastParseFailedCount = 0;
 
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
+}
+
 // prettier-ignore
 const indikatorMap = [
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Kekesatan', keywords: [ 'Kekesatan', 'Kekesatan (Perkerasan Jalur Utama)', 'Kekesatan [ Perkerasan Jalur Utama ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Ketidakrataan', keywords: [ 'Ketidakrataan', 'Ketidakrataan (Perkerasan Jalur Utama)', 'Ketidakrataan [ Perkerasan Jalur Utama ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Tidak Ada Lubang', keywords: [ 'Lubang', 'Lubang (Perkerasan Jalur Utama)', 'Lubang [ Perkerasan Jalur Utama ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Rutting', keywords: [ 'Rutting', 'Rutting (Perkerasan Jalur Utama)', 'Rutting [ Perkerasan Jalur Utama ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Retak', keywords: [ 'Retak', 'Retak (Perkerasan Jalur Utama)', 'Retak [ Perkerasan Jalur Utama ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Drainase', sub: 'Tidak Ada Endapan', keywords: [ 'Tidak Ada Endapan', 'Tidak Ada Endapan (Drainase)', 'Tidak Ada Endapan [ Drainase ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Drainase', sub: 'Penampang Saluran', keywords: [ 'Penampang Saluran', 'Penampang Saluran (Drainase)', 'Penampang Saluran [ Drainase ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Median', sub: 'Kerb', keywords: [ 'Kerb', 'Kerb (Median)', 'Kerb [ Median ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Median', sub: 'MCB (Median Concrete Barier)', keywords: [ 'MCB (Median Concrete Barier)', 'MCB (Median Concrete Barier) (Median)', 'MCB (Median Concrete Barier) [ Median ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Median', sub: 'Guard Rail', keywords: [ 'Guardrail', 'Guardrail (Median)', 'Guardrail [ Median ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Median', sub: 'Wire Rope', keywords: [ 'Wire Rope', 'Wire Rope (Median)', 'Wire Rope [ Median ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Bahu Jalan', sub: 'Tidak Ada Lubang', keywords: [ 'Lubang', 'Lubang (Bahu Jalan)', 'Lubang [ Bahu Jalan ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Bahu Jalan', sub: 'Rutting', keywords: [ 'Rutting', 'Rutting (Bahu Jalan)', 'Rutting [ Bahu Jalan ]' ] },
-  { substansi: 'Kondisi Jalan Tol', indikator: 'Bahu Jalan', sub: 'Retak', keywords: [ 'Retak', 'Retak (Bahu Jalan)', 'Retak [ Bahu Jalan ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Kekesatan', keywords: [ 'Kekesatan', 'Kekesatan (Perkerasan Jalur Utama)', 'Kekesatan [ Perkerasan Jalur Utama ]', 'Perkerasan Jalan Utama [ Kekesatan ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Ketidakrataan', keywords: [ 'Ketidakrataan', 'Ketidakrataan (Perkerasan Jalur Utama)', 'Ketidakrataan [ Perkerasan Jalur Utama ]', 'Perkerasan Jalan Utama [ Ketidakrataan (IRI) ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Tidak Ada Lubang', keywords: [ 'Lubang', 'Lubang (Perkerasan Jalur Utama)', 'Lubang [ Perkerasan Jalur Utama ]', 'Perkerasan Jalan Utama [ Lubang ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Rutting', keywords: [ 'Rutting', 'Rutting (Perkerasan Jalur Utama)', 'Rutting [ Perkerasan Jalur Utama ]', 'Perkerasan Jalan Utama [ Rutting ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Perkerasan Jalur Utama', sub: 'Retak', keywords: [ 'Retak', 'Retak (Perkerasan Jalur Utama)', 'Retak [ Perkerasan Jalur Utama ]', 'Perkerasan Jalan Utama [ Retak ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Drainase', sub: 'Tidak Ada Endapan', keywords: [ 'Tidak Ada Endapan', 'Tidak Ada Endapan (Drainase)', 'Tidak Ada Endapan [ Drainase ]', 'Drainase [ Tidak Ada Endapan ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Drainase', sub: 'Penampang Saluran', keywords: [ 'Penampang Saluran', 'Penampang Saluran (Drainase)', 'Penampang Saluran [ Drainase ]', 'Drainase [ Penampang Saluran ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Median', sub: 'Kerb', keywords: [ 'Kerb', 'Kerb (Median)', 'Kerb [ Median ]', 'Median [ Kerb ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Median', sub: 'MCB (Median Concrete Barier)', keywords: [ 'MCB (Median Concrete Barier)', 'MCB (Median Concrete Barier) (Median)', 'MCB (Median Concrete Barier) [ Median ]', 'Median [ MCB (Median Concrete Barier) ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Median', sub: 'Guard Rail', keywords: [ 'Guardrail', 'Guardrail (Median)', 'Guardrail [ Median ]', 'Median [ Guardrail ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Median', sub: 'Wire Rope', keywords: [ 'Wire Rope', 'Wire Rope (Median)', 'Wire Rope [ Median ]', 'Median [ Wire Rope ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Bahu Jalan', sub: 'Tidak Ada Lubang', keywords: [ 'Lubang', 'Lubang (Bahu Jalan)', 'Lubang [ Bahu Jalan ]', 'Bahu Jalan [ Tidak Ada Lubang ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Bahu Jalan', sub: 'Rutting', keywords: [ 'Rutting', 'Rutting (Bahu Jalan)', 'Rutting [ Bahu Jalan ]', 'Bahu Jalan [ Rutting ]' ] },
+  { substansi: 'Kondisi Jalan Tol', indikator: 'Bahu Jalan', sub: 'Retak', keywords: [ 'Retak', 'Retak (Bahu Jalan)', 'Retak [ Bahu Jalan ]', 'Bahu Jalan [ Retak ]' ] },
   { substansi: 'Kondisi Jalan Tol', indikator: 'Rounding', sub: '', keywords: [ 'Rounding' ] },
-  { substansi: 'Kecepatan', indikator: 'Kecepatan Tempuh Rata-rata Kondisi Normal', sub: '', keywords: [ 'Kecepatan Tempuh Rata-rata Kondisi Normal' ] },
-  { substansi: 'Aksesibilitas', indikator: 'Kecepatan Transaksi Rata-rata', sub: '', keywords: [ 'Kecepatan Transaksi Rata-rata' ] },
-  { substansi: 'Aksesibilitas', indikator: 'Jumlah Antrian Kendaraan (per-Gardu)', sub: '', keywords: [ 'Jumlah Antrian Kendaraan (per-Gardu)' ] },
-  { substansi: 'Mobilitas', indikator: 'Kecepatan Penanganan Hambatan Lalu Lintas', sub: '', keywords: [ 'Kecepatan Penanganan Hambatan Lalu Lintas' ] },
+  { substansi: 'Kecepatan', indikator: 'Kecepatan Tempuh Rata-rata Kondisi Normal', sub: '', keywords: [ 'Kecepatan Tempuh Rata-rata Kondisi Normal', 'Kecepatan Tempuh Rata-Rata Kondisi Normal' ] },
+  { substansi: 'Aksesibilitas', indikator: 'Kecepatan Transaksi Rata-rata', sub: '', keywords: [ 'Kecepatan Transaksi Rata-rata', 'Kecepatan Transaksi Rata-Rata' ] },
+  { substansi: 'Aksesibilitas', indikator: 'Jumlah Antrian Kendaraan (per-Gardu)', sub: '', keywords: [ 'Jumlah Antrian Kendaraan (per-Gardu)', 'Jumlah Antrian Kendaraan' ] },
+  { substansi: 'Mobilitas', indikator: 'Kecepatan Penanganan Hambatan Lalu Lintas', sub: '', keywords: [ 'Kecepatan Penanganan Hambatan Lalu Lintas', 'Kecepatan Penanganan Hambatan Lalin [ Mulai Informasi diterima sampai ke tempat kejadian ]', 'Kecepatan Penanganan Hambatan Lalin [ Penanganan Kendaraan Mogok Jalan Tol Dalam Kota ]', 'Kecepatan Penanganan Hambatan Lalin [ Wilayah Pengamatan Observasi Patroli]' ] },
   { substansi: 'Mobilitas', indikator: 'Kecepatan Penanganan Patroli Jalan Raya', sub: '', keywords: [ 'Kecepatan Penanganan Patroli Jalan Raya' ] },
   { substansi: 'Mobilitas', indikator: 'Kecepatan Penanganan Kendaraan Derek', sub: '', keywords: [ 'Kecepatan Penanganan Kendaraan Derek' ] },
-  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Perambuan', keywords: [ 'Perambuan', 'Perambuan (Petunjuk Jalan)', 'Perambuan [ Petunjuk Jalan ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Marka Jalan', keywords: [ 'Marka Jalan', 'Marka Jalan (Petunjuk Jalan)', 'Marka Jalan [ Petunjuk Jalan ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Guide Post/Reflektor Kiri dan Kanan', keywords: [ 'Guide Post', 'Guide Post (Petunjuk Jalan)', 'Guide Post [ Petunjuk Jalan ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Patok Kilometer', keywords: [ 'Patok Kilometer', 'Patok Kilometer (Petunjuk Jalan)', 'Patok Kilometer [ Petunjuk Jalan ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Patok Hektometer', keywords: [ 'Patok Hektometer', 'Patok Hektometer (Petunjuk Jalan)', 'Patok Hektometer [ Petunjuk Jalan ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Fasilitas Lainnya', sub: 'Penerangan Jalan Umum (PJU)', keywords: [ 'Penerangan Jalan Umum (PJU)', 'Penerangan Jalan Umum (PJU) (Fasilitas Lainnya)', 'Penerangan Jalan Umum (PJU) [ Fasilitas Lainnya ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Fasilitas Lainnya', sub: 'Anti Silau', keywords: [ 'Anti Silau', 'Anti Silau (Fasilitas Lainnya)', 'Anti Silau [ Fasilitas Lainnya ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Fasilitas Lainnya', sub: 'Pagar Rumija', keywords: [ 'Pagar Rumija', 'Pagar Rumija (Fasilitas Lainnya)', 'Pagar Rumija [ Fasilitas Lainnya ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Fasilitas Lainnya', sub: 'Pagar Pengaman', keywords: [ 'Pagar Pengaman', 'Pagar Pengaman (Fasilitas Lainnya)', 'Pagar Pengaman [ Fasilitas Lainnya ]' ] },
-  { substansi: 'Keselamatan', indikator: 'Penanganan Kecelakaan', sub: '', keywords: [ 'Penanganan Kecelakaan' ] },
+  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Perambuan', keywords: [ 'Perambuan', 'Perambuan (Petunjuk Jalan)', 'Perambuan [ Petunjuk Jalan ]', 'Petunjuk jalan [ Perambuan ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Marka Jalan', keywords: [ 'Marka Jalan', 'Marka Jalan (Petunjuk Jalan)', 'Marka Jalan [ Petunjuk Jalan ]', 'Petunjuk Jalan [ Marka Jalan ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Guide Post/Reflektor Kiri dan Kanan', keywords: [ 'Guide Post', 'Guide Post (Petunjuk Jalan)', 'Guide Post [ Petunjuk Jalan ]', 'Petunjuk Jalan [ Guide Post ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Patok Kilometer', keywords: [ 'Patok Kilometer', 'Patok Kilometer (Petunjuk Jalan)', 'Patok Kilometer [ Petunjuk Jalan ]', 'Petunjuk Jalan [ Patok Kilometer ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Petunjuk Jalan', sub: 'Patok Hektometer', keywords: [ 'Patok Hektometer', 'Patok Hektometer (Petunjuk Jalan)', 'Patok Hektometer [ Petunjuk Jalan ]', 'Petunjuk Jalan [ Patok Hektometer ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Fasilitas Lainnya', sub: 'Penerangan Jalan Umum (PJU)', keywords: [ 'Penerangan Jalan Umum (PJU)', 'Penerangan Jalan Umum (PJU) (Fasilitas Lainnya)', 'Penerangan Jalan Umum (PJU) [ Fasilitas Lainnya ]', 'Fasilitas Lainnya [ Penerangan jalan Umum (PJU) ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Fasilitas Lainnya', sub: 'Anti Silau', keywords: [ 'Anti Silau', 'Anti Silau (Fasilitas Lainnya)', 'Anti Silau [ Fasilitas Lainnya ]', 'Fasilitas Lainnya [ Anti Silau ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Fasilitas Lainnya', sub: 'Pagar Rumija', keywords: [ 'Pagar Rumija', 'Pagar Rumija (Fasilitas Lainnya)', 'Pagar Rumija [ Fasilitas Lainnya ]', 'Fasilitas Lainnya [ Pagar Rumija ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Fasilitas Lainnya', sub: 'Pagar Pengaman', keywords: [ 'Pagar Pengaman', 'Pagar Pengaman (Fasilitas Lainnya)', 'Pagar Pengaman [ Fasilitas Lainnya ]', 'Fasilitas Lainnya [ Pagar Pengaman ]' ] },
+  { substansi: 'Keselamatan', indikator: 'Penanganan Kecelakaan', sub: '', keywords: [ 'Penanganan Kecelakaan', 'Penanganan Kecelakaan [ Kendaraan Kecelakaan ]', 'Penanganan Kecelakaan [ Korban Kecelakaan ]' ] },
   { substansi: 'Keselamatan', indikator: 'Pengamanan dan Penegakan Hukum', sub: '', keywords: [ 'Pengamanan dan Penegakan Hukum' ] },
-  { substansi: 'Unit Pertolongan / Penyelamatan dan Bantuan Pelayanan', indikator: 'Ambulans', sub: '', keywords: [ 'Ambulans' ] },
+  { substansi: 'Unit Pertolongan / Penyelamatan dan Bantuan Pelayanan', indikator: 'Ambulans', sub: '', keywords: [ 'Ambulans', 'Ambulance' ] },
   { substansi: 'Unit Pertolongan / Penyelamatan dan Bantuan Pelayanan', indikator: 'Kendaraan Derek', sub: '', keywords: [ 'Kendaraan Derek' ] },
   { substansi: 'Unit Pertolongan / Penyelamatan dan Bantuan Pelayanan', indikator: 'Polisi Patroli Jalan Raya (PJR)', sub: '', keywords: [ 'Polisi Patroli Jalan Raya (PJR)' ] },
   { substansi: 'Unit Pertolongan / Penyelamatan dan Bantuan Pelayanan', indikator: 'Patroli Jalan Tol (Operator)', sub: '', keywords: [ 'Patroli Jalan Tol (Operator)' ] },
   { substansi: 'Unit Pertolongan / Penyelamatan dan Bantuan Pelayanan', indikator: 'Kendaraan Rescue', sub: '', keywords: [ 'Kendaraan Rescue' ] },
-  { substansi: 'Unit Pertolongan / Penyelamatan dan Bantuan Pelayanan', indikator: 'Sistem Informasi', sub: '', keywords: [ 'Sistem Informasi' ] },
-  { substansi: 'Lingkungan', indikator: 'Kebersihan ', sub: '', keywords: [ 'Kebersihan ', 'Kebersihan (Kantor Operasi dan Gardu Tol)', 'Kebersihan [ Kantor Operasi dan Gardu Tol ]' ] },
+  { substansi: 'Unit Pertolongan / Penyelamatan dan Bantuan Pelayanan', indikator: 'Sistem Informasi', sub: '', keywords: [ 'Sistem Informasi', 'Sistem Informasi [ Nomor Telepon Info Tol ]', 'Sistem Informasi [Informasi dan Komunikasi Kondisi Lalu Lintas ]' ] },
+  { substansi: 'Lingkungan', indikator: 'Kebersihan', sub: 'Kantor Operasi dan Gardu Tol', keywords: [ 'Kebersihan ', 'Kebersihan (Kantor Operasi dan Gardu Tol)', 'Kebersihan [ Kantor Operasi dan Gardu Tol ]' ] },
+  { substansi: 'Lingkungan', indikator: 'Kebersihan', sub: 'Dalam Rumija Tol', keywords: [ 'Kebersihan [ Dalam Rumija Tol ]' ] },
   { substansi: 'Lingkungan', indikator: 'Tanaman ', sub: '', keywords: [ 'Dalam Rumija Tol', 'Tanaman (Dalam Rumija Tol)', 'Tanaman [ Dalam Rumija Tol ]' ] },
   { substansi: 'Lingkungan', indikator: 'Rumput ', sub: '', keywords: [ 'Rumija & Luar Rumaja', 'Rumput (Rumija & Luar Rumaja)', 'Rumput [ Di Rumija Di Luar Rumaja ]' ] },
   { substansi: 'Tempat Istirahat (TI), dan Tempat Istirahat dan Pelayanan (TIP)', indikator: 'Kondisi Jalan', sub: '', keywords: [ 'Kondisi Jalan', 'TI/TIP (Kondisi Jalan)', 'TI/TIP [ Kondisi Jalan ]' ] },
@@ -76,7 +81,9 @@ const indikatorMap = [
   { substansi: 'Tempat Istirahat (TI), dan Tempat Istirahat dan Pelayanan (TIP)', indikator: 'Penerangan', sub: '', keywords: [ 'Penerangan', 'TI/TIP (Penerangan)', 'TI/TIP [ Penerangan ]' ] },
   { substansi: 'Tempat Istirahat (TI), dan Tempat Istirahat dan Pelayanan (TIP)', indikator: 'Stasiun Pengisian Bahan Bakar', sub: '', keywords: [ 'Stasiun Pengisian Bahan Bakar', 'TI/TIP (Stasiun Pengisian Bahan Bakar)', 'TI/TIP [ Stasiun Pengisian Bahan Bakar ]' ] },
   { substansi: 'Tempat Istirahat (TI), dan Tempat Istirahat dan Pelayanan (TIP)', indikator: 'Bengkel Umum ', sub: '', keywords: [ 'Bengkel Umum', 'TI/TIP (Bengkel Umum)', 'TI/TIP [ Bengkel Umum ]' ] },
-  { substansi: 'Tempat Istirahat (TI), dan Tempat Istirahat dan Pelayanan (TIP)', indikator: 'Tempat Makan dan Minum', sub: '', keywords: [ 'Tempat Makan dan Minuman', 'TI/TIP (Tempat Makan dan Minuman)', 'TI/TIP [ Tempat Makan dan Minuman ]' ] }
+  { substansi: 'Tempat Istirahat (TI), dan Tempat Istirahat dan Pelayanan (TIP)', indikator: 'Tempat Makan dan Minum', sub: '', keywords: [ 'Tempat Makan dan Minuman', 'TI/TIP (Tempat Makan dan Minuman)', 'TI/TIP [ Tempat Makan dan Minuman ]' ] },
+  { substansi: 'Lainnya', indikator: 'Catatan', sub: '', keywords: [ 'Catatan' ] },
+  { substansi: 'Lainnya', indikator: 'Informasi', sub: '', keywords: [ 'Informasi' ] }
 ]
 
 async function copyTableToClipboard(tableId) {
@@ -214,7 +221,7 @@ async function hitungIndikator(startDate, endDate = startDate) {
 }
 
 async function tampilkanTabel() {
-  console.warn($('#startDate').val(), $('#endDate').val());
+  viewLog && console.warn($('#startDate').val(), $('#endDate').val());
   const rows = await hitungIndikator($('#startDate').val(), $('#endDate').val());
 
   let html = `
@@ -270,9 +277,10 @@ async function tampilkanTabel() {
  * @property {string} Msg.data.base64 Gambar dalam format base64.
  */
 function ahkWebMessage(Msg) {
-  console.warn('send AHK -> JS');
-  console.log('ahkWebMessage(Msg)', Msg);
-  console.log(Msg.data);
+  viewLog && console.warn('send AHK -> JS');
+  viewLog && console.log('ahkWebMessage(Msg)', Msg);
+  viewLog && console.log(Msg.data);
+  setAhkConnectionStatus('ok', 'AHK mengirim pesan ke JavaScript');
 
   if (Msg.data.type == 'config') {
     viewLog && console.warn('Load Config', Msg.data.data);
@@ -282,9 +290,9 @@ function ahkWebMessage(Msg) {
     const { index, total, no, fileName, base64 } = Msg.data;
     renderCardsWithDelay('done', index, total, no, fileName, base64);
   } else if (Msg.data.cmd === 'espm_html') {
-    console.log('HTML received');
-    console.log('Class xxx count:', Msg.data.count);
-    // console.log(Msg.data.html);
+    viewLog && console.log('HTML received');
+    viewLog && console.log('Class xxx count:', Msg.data.count);
+    // viewLog && console.log(Msg.data.html);
 
     const html = Msg.data.html;
     if (!html) return Swal.fire('😟 Oops', 'Silakan paste HTML terlebih dahulu.', 'warning');
@@ -307,16 +315,121 @@ function ahkWebMessage(Msg) {
   }
 }
 
-window.chrome.webview.addEventListener('message', ahkWebMessage);
+if (window.chrome?.webview) {
+  window.chrome.webview.addEventListener('message', ahkWebMessage);
+}
 
 let filenameOrder = [];
+
+function setAhkConnectionStatus(status, message) {
+  const statusEl = document.getElementById('ahkConnectionStatus');
+  const emojiEl = document.getElementById('ahkConnectionEmoji');
+  const labelEl = document.getElementById('ahkConnectionLabel');
+  if (!statusEl || !emojiEl || !labelEl) return;
+
+  const statusMap = {
+    checking: { emoji: '🟡', label: 'AHK', className: 'status-checking' },
+    ok: { emoji: '🟢', label: 'AHK', className: 'status-ok' },
+    error: { emoji: '🔴', label: 'AHK', className: 'status-error' },
+    offline: { emoji: '⚫', label: 'AHK', className: 'status-offline' }
+  };
+  const next = statusMap[status] || statusMap.checking;
+
+  statusEl.classList.remove('status-checking', 'status-ok', 'status-error', 'status-offline');
+  statusEl.classList.add(next.className);
+  emojiEl.textContent = next.emoji;
+  labelEl.textContent = next.label;
+  statusEl.setAttribute('data-bs-title', message);
+  statusEl.setAttribute('title', message);
+
+  const tooltip = bootstrap.Tooltip.getInstance(statusEl);
+  if (tooltip) {
+    tooltip.dispose();
+    new bootstrap.Tooltip(statusEl);
+  }
+}
+
+async function waitForAhk(timeoutMs = 3000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (window.chrome?.webview && window.ahk) return true;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  return Boolean(window.chrome?.webview && window.ahk);
+}
+
+async function callAhkSubmitJson(payload) {
+
+  viewLog && console.warn('callAhkSubmitJson', payload);
+
+  setAhkConnectionStatus('checking', `Mengirim action "${payload.action || '-'}" ke AHK...`);
+
+  if (!window.chrome?.webview) {
+    setAhkConnectionStatus('offline', 'WebView2 tidak tersedia. Jalankan dari aplikasi desktop AHK.');
+    throw new Error('WebView2 tidak tersedia.');
+  }
+
+  const ahkReady = await waitForAhk();
+  if (!ahkReady || typeof ahk.SubmitJson !== 'function') {
+    setAhkConnectionStatus('error', 'Host object AHK atau callback SubmitJson belum tersedia.');
+    throw new Error('Callback AHK SubmitJson belum tersedia.');
+  }
+
+  try {
+    const response = await ahk.SubmitJson(JSON.stringify(payload));
+    setAhkConnectionStatus('ok', `JavaScript tersambung ke AHK. Action terakhir: ${payload.action || '-'}`);
+    return response;
+  } catch (err) {
+    setAhkConnectionStatus('error', err.message || 'Gagal memanggil callback AHK SubmitJson.');
+    throw err;
+  }
+}
+
+async function callAhkMessage(payload) {
+  setAhkConnectionStatus('checking', `Mengirim cmd "${payload.cmd || '-'}" ke AHK...`);
+
+  if (!window.chrome?.webview) {
+    setAhkConnectionStatus('offline', 'WebView2 tidak tersedia. Jalankan dari aplikasi desktop AHK.');
+    throw new Error('WebView2 tidak tersedia.');
+  }
+
+  const ahkReady = await waitForAhk();
+  if (!ahkReady || typeof ahk.message !== 'function') {
+    setAhkConnectionStatus('error', 'Host object AHK atau callback message belum tersedia.');
+    throw new Error('Callback AHK message belum tersedia.');
+  }
+
+  try {
+    const response = await ahk.message(JSON.stringify(payload));
+    setAhkConnectionStatus('ok', `JavaScript tersambung ke AHK. Cmd terakhir: ${payload.cmd || '-'}`);
+    return response;
+  } catch (err) {
+    setAhkConnectionStatus('error', err.message || 'Gagal memanggil callback AHK message.');
+    throw err;
+  }
+}
+
+async function checkAhkConnection() {
+  try {
+    const response = await callAhkSubmitJson({ action: 'ping' });
+    const result = typeof response === 'string' ? JSON.parse(response) : response;
+    if (result && !result.ok) throw new Error(result.error || 'Ping AHK gagal.');
+    setAhkConnectionStatus('ok', 'JavaScript dan AHK tersambung.');
+  } catch (err) {
+    console.warn('AHK connection check failed:', err);
+  }
+}
+
 /**
  * Event handler yang dijalankan saat DOM siap.
  * Menginisialisasi permintaan konfigurasi dan tooltip bootstrap.
  */
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   if (window.chrome?.webview) {
-    ahk.SubmitJson(JSON.stringify({ action: 'request_config' }));
+    await checkAhkConnection();
+    callAhkSubmitJson({ action: 'request_config' }).catch(err => console.error('Gagal request config dari AHK:', err));
+  } else {
+    setAhkConnectionStatus('offline', 'Mode browser biasa. AHK tidak tersedia.');
   }
 
   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -484,7 +597,20 @@ async function exportIndexedDBToExcel() {
  * @returns {string|null} Tanggal dalam format `yyyy-mm-dd`, atau `null` jika tidak cocok.
  */
 function formatTanggalToYMD(input) {
-  const bulanMap = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
+  const bulanMap = {
+    Jan: '01',
+    Feb: '02',
+    Mar: '03',
+    Apr: '04',
+    May: '05',
+    Jun: '06',
+    Jul: '07',
+    Aug: '08',
+    Sep: '09',
+    Oct: '10',
+    Nov: '11',
+    Dec: '12'
+  };
 
   const regex = /^(\d{2})\s+([A-Za-z]{3})\s+(\d{4})/;
   const match = input.match(regex);
@@ -1134,7 +1260,10 @@ $(function () {
 
     if (window.chrome && window.chrome.webview) {
       console.warn('send JS -> AHK');
-      ahk.message(JSON.stringify({ cmd: 'open_espm' }));
+      callAhkMessage({ cmd: 'open_espm' }).catch(err => {
+        console.error('Gagal membuka ESPM dari AHK:', err);
+        Swal.fire('Gagal membuka eSPM', err.message || 'Koneksi JavaScript ke AHK bermasalah.', 'error');
+      });
     }
   });
 
@@ -1389,10 +1518,12 @@ $(document).on('click', '.detailBtn', function () {
   modal.show();
 });
 
-// prettier-ignore
-const validIndikatorSet = new Set([
-    'Ambulance', 'Bahu Jalan [ Retak ]', 'Bahu Jalan [ Rutting ]', 'Bahu Jalan [ Tidak Ada Lubang ]', 'Bengkel Umum', 'Catatan', 'Drainase [ Penampang Saluran ]', 'Drainase [ Tidak Ada Endapan ]', 'Fasilitas Lainnya [ Anti Silau ]', 'Fasilitas Lainnya [ Pagar Pengaman ]', 'Fasilitas Lainnya [ Pagar Rumija ]', 'Fasilitas Lainnya [ Penerangan jalan Umum (PJU) ]', 'Informasi', 'Jumlah Antrian Kendaraan', 'Kebersihan [ Dalam Rumija Tol ]', 'Kebersihan [ Kantor Operasi dan Gardu Tol ]', 'Kecepatan Penanganan Hambatan Lalin [ Mulai Informasi diterima sampai ke tempat kejadian ]', 'Kecepatan Penanganan Hambatan Lalin [ Penanganan Kendaraan Mogok Jalan Tol Dalam Kota ]', 'Kecepatan Penanganan Hambatan Lalin [ Wilayah Pengamatan Observasi Patroli]', 'Kecepatan Penanganan Kendaraan Derek', 'Kecepatan Penanganan Patroli Jalan Raya', 'Kecepatan Tempuh Rata-Rata Kondisi Normal', 'Kecepatan Transaksi Rata-Rata', 'Kendaraan Derek', 'Kendaraan Rescue', 'Kondisi Jalan', 'Median [ Guardrail ]', 'Median [ Kerb ]', 'Median [ MCB (Median Concrete Barier) ]', 'Median [ Wire Rope ]', 'On / Off Ramp', 'Parkir Kendaraan', 'Patroli Jalan Tol (Operator)', 'Penanganan Kecelakaan [ Kendaraan Kecelakaan ]', 'Penanganan Kecelakaan [ Korban Kecelakaan ]', 'Penerangan', 'Pengamanan dan Penegakan Hukum', 'Perkerasan Jalan Utama [ Kekesatan ]', 'Perkerasan Jalan Utama [ Ketidakrataan (IRI) ]', 'Perkerasan Jalan Utama [ Lubang ]', 'Perkerasan Jalan Utama [ Retak ]', 'Perkerasan Jalan Utama [ Rutting ]', 'Petunjuk Jalan [ Guide Post ]', 'Petunjuk Jalan [ Marka Jalan ]', 'Petunjuk Jalan [ Patok Hektometer ]', 'Petunjuk Jalan [ Patok Kilometer ]', 'Petunjuk jalan [ Perambuan ]', 'Polisi Patroli Jalan Raya (PJR)', 'Rounding', 'Rumput [ Di Rumija Di Luar Rumaja ]', 'Sistem Informasi [ Nomor Telepon Info Tol ]', 'Sistem Informasi [Informasi dan Komunikasi Kondisi Lalu Lintas ]', 'Stasiun Pengisian Bahan Bakar', 'Tanaman [ Dalam Rumija Tol ]', 'Tempat Makan dan Minuman', 'Toilet'
-]);
+const validIndikatorSet = new Set(
+  indikatorMap
+    .flatMap(item => item.keywords || [])
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length)
+);
 const validJalurSet = new Set(['Jalur A', 'Jalur B', 'Non Jalur']);
 const validLajurSet = new Set(['Non Lajur', 'Bahu Luar', 'Lajur 1', 'Lajur 2', 'Lajur 3', 'Lajur 4', 'Lajur 5', 'Bahu Dalam', 'Ramp', 'Akses', 'Lajur Motor']);
 /**
@@ -1434,8 +1565,8 @@ $('#pdfInput').on('change', async function () {
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
     let allData = [];
-    let errorCollector = []; // Untuk error parsing
-    lastParseErrors = []; // Reset global error untuk matching
+    let errorCollector = [];        // Untuk error parsing
+    lastParseErrors = [];           // Reset global error untuk matching
 
     // State antar halaman
     let prevBlock = null;
@@ -1460,8 +1591,7 @@ $('#pdfInput').on('change', async function () {
       });
       if (line.trim()) lines.push(line.trim());
 
-      let pageText = lines
-        .join(' ')
+      let pageText = lines.join(' ')
         .replace(/(\d{4}-\d{2}-)\s+(\d{2})/g, '$1$2')
         .replace(/\s+/g, ' ');
 
@@ -1501,8 +1631,8 @@ $('#pdfInput').on('change', async function () {
           continue;
         }
 
-        // Gabung jika blok sebelumnya berakhir dengan "Lajur" dan blok baru mulai dengan angka
-        if (prevBlock && /\bLajur$/.test(prevBlock.trim()) && /^\d+\b/.test(block)) {
+        // Gabung jika angka lajur terbaca sebagai awal blok baru.
+        if (prevBlock && /\bLajur\s*$/i.test(prevBlock.trim()) && /^\d+\b/.test(block)) {
           resplitIndexes[resplitIndexes.length - 1] += ' ' + block;
           prevBlock = resplitIndexes[resplitIndexes.length - 1];
           continue;
@@ -1553,7 +1683,7 @@ $('#pdfInput').on('change', async function () {
             .replace(/Non\s*Jalur/gi, 'Non Jalur')
             .trim();
 
-          const mJalur = afterStaNorm.match(/\b(Jalur A|Jalur B|Non Jalur)\b\s+(Non Lajur|Bahu Luar|Lajur \d+|Bahu Dalam|Ramp|Akses|Lajur Motor)\b/i);
+          const mJalur = afterStaNorm.match(/\b(Jalur A|Jalur B|Non Jalur)\b\s+(Non Lajur|Bahu Luar|Lajur [1-5]|Bahu Dalam|Ramp|Akses|Lajur Motor)\b/i);
           if (!mJalur) throwParseError('JALUR', 'Jalur / Lajur tidak ditemukan');
 
           const jalur = mJalur[1];
@@ -1599,6 +1729,7 @@ $('#pdfInput').on('change', async function () {
             repair100: '',
             content: block
           });
+
         } catch (err) {
           console.error('Error parsing block:', err.message, '\nBlock:', block);
 
@@ -1648,6 +1779,7 @@ $('#pdfInput').on('change', async function () {
         timer: 2500
       });
     }
+
   } catch (err) {
     console.error('Error keseluruhan:', err);
     Swal.fire({
@@ -1658,12 +1790,14 @@ $('#pdfInput').on('change', async function () {
   }
 });
 
-function normalizeDashSpacing(text) {
-  return text
-    .replace(/(\w)-\s+(\w)/g, '$1-$2') // Rata- Rata → Rata-Rata
-    .replace(/\s+-\s+/g, ' - ') // tetap jaga dash pemisah kalimat
-    .trim();
-}
+
+
+          function normalizeDashSpacing(text) {
+            return text
+              .replace(/(\w)-\s+(\w)/g, '$1-$2') // Rata- Rata → Rata-Rata
+              .replace(/\s+-\s+/g, ' - ') // tetap jaga dash pemisah kalimat
+              .trim();
+          }
 function throwParseError(code, message) {
   throw new Error(`[${code}] ${message}`);
 }
@@ -1817,6 +1951,7 @@ async function mergeRepair100(allData, globalData) {
 
     // Semua kata penting dari salah satu ada di yang lain
     return tokens1.every(t => tokens2.includes(t)) || tokens2.every(t => tokens1.includes(t));
+
   }
 
   function normalizeText(str) {
@@ -1859,7 +1994,7 @@ async function mergeRepair100(allData, globalData) {
 
 async function matchAndMergeWithDB(allData) {
   const dbData = await getAllFromIndexedDB();
-  lastParseErrors = []; // reset setiap parsing
+  lastParseErrors = [];   // reset setiap parsing
 
   const normalizedDB = new Map(); // Untuk lookup cepat
 
@@ -1876,7 +2011,7 @@ async function matchAndMergeWithDB(allData) {
     if (item.error) {
       // Sudah error saat parsing block
       lastParseErrors.push({
-        no: item.no || index + 1,
+        no: item.no || (index + 1),
         type: 'PARSE_ERROR',
         message: item.message || 'Gagal parsing block PDF',
         pdfContent: item.content || '',
@@ -1892,7 +2027,7 @@ async function matchAndMergeWithDB(allData) {
       const match = matchResult.match;
       item.repair100 = match.repair100 || '';
       item.latlng = `${match.repair_latitude_100 || ''}, ${match.repair_longitude_100 || ''}`.trim() || 'Tidak Ada Geolocations';
-      item.id_db = match.id; // simpan ID asli dari DB (sangat berguna)
+      item.id_db = match.id;                    // simpan ID asli dari DB (sangat berguna)
       item.matchScore = matchResult.score;
     } else {
       item.repair100 = '';
@@ -1937,8 +2072,8 @@ function formatDateForKey(dateStr) {
   // Ubah "30 Oct 2025 09:13:36" → "2025-10-30"
   const match = dateStr.match(/^(\d{1,2})\s+(\w{3})\s+(\d{4})/);
   if (!match) return '';
-  const months = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
-  return `${match[3]}-${months[match[2]]}-${match[1].padStart(2, '0')}`;
+  const months = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+  return `${match[3]}-${months[match[2]]}-${match[1].padStart(2,'0')}`;
 }
 
 function findBestMatch(pdfItem, dbData, normalizedDB) {
@@ -2010,8 +2145,7 @@ function findBestMatch(pdfItem, dbData, normalizedDB) {
     }
   }
 
-  if (bestScore >= 65) {
-    // threshold bisa disesuaikan
+  if (bestScore >= 65) {   // threshold bisa disesuaikan
     return {
       match: bestMatch,
       score: bestScore,
@@ -2036,12 +2170,8 @@ function normalizeText(str) {
 }
 
 function isIndikatorMatch(ind1, ind2) {
-  const t1 = normalizeText(ind1)
-    .split(' ')
-    .filter(w => w.length > 2);
-  const t2 = normalizeText(ind2)
-    .split(' ')
-    .filter(w => w.length > 2);
+  const t1 = normalizeText(ind1).split(' ').filter(w => w.length > 2);
+  const t2 = normalizeText(ind2).split(' ').filter(w => w.length > 2);
   return t1.every(t => t2.includes(t)) || t2.every(t => t1.includes(t));
 }
 
@@ -2111,7 +2241,7 @@ function buildFileName(row, formatArr) {
     .trim();
 }
 
-$('#downloadAllBtn').on('click', function () {
+$('#downloadAllBtn').on('click', async function () {
   const table = $('#pdfTable').DataTable();
 
   const validData = table
@@ -2140,7 +2270,15 @@ $('#downloadAllBtn').on('click', function () {
       };
     });
 
-  console.log('Kirim ke AHK:', validData);
+  const totalRows = table.rows().data().toArray().length;
+  console.log(`Kirim ke AHK: ${validData.length}/${totalRows} data valid`, validData);
+  if (!validData.length) {
+    return Swal.fire(
+      'Tidak ada gambar yang bisa diproses',
+      `PDF terbaca ${totalRows} baris, tetapi belum ada baris yang memiliki URL Repair 100%. Jalankan atau cek hasil matching data eSPM terlebih dahulu.`,
+      'warning'
+    );
+  }
 
   if (!validData.length) {
     return Swal.fire('😟 Oops', 'Silakan pilih pdf filenya terlebih dahulu.', 'warning');
@@ -2154,11 +2292,36 @@ $('#downloadAllBtn').on('click', function () {
     filenameFormat: filenameOrder
   };
 
+  console.log('Kirim ke AHK dengan config:', config);
+
   // Kirim ke AHK menggunakan postMessage
   if (window.chrome?.webview) {
     $('#image-tab').click();
     $('#resultImages').empty();
-    ahk.SubmitJson(JSON.stringify({ action: 'download', data: validData }));
+    try {
+      const manifestText = validData
+        .map(item => [
+          item.fileName,
+          item.tanggal,
+          item.no,
+          item.latlng,
+          item.url
+        ].map(value => String(value ?? '').replace(/\t/g, ' ').replace(/\r?\n/g, ' ')).join('\t'))
+        .join('\n');
+
+      const response = await callAhkSubmitJson({
+        action: 'download',
+        manifestText
+      });
+      const result = typeof response === 'string' ? JSON.parse(response) : response;
+
+      if (result && !result.ok) {
+        throw new Error(result.error || 'AHK gagal memproses data.');
+      }
+    } catch (err) {
+      console.error('Gagal kirim ke AHK:', err);
+      Swal.fire('Gagal kirim ke AHK', err.message || 'Terjadi kesalahan saat mengirim data.', 'error');
+    }
   } else {
     Swal.fire('Tidak dapat mengirim ke ahk.localhost', 'Fitur ini hanya tersedia di aplikasi desktop', 'warning');
   }
@@ -2329,8 +2492,12 @@ function saveConfigJSON() {
   console.warn({ action: 'config', data: config });
 
   if (window.chrome?.webview) {
-    ahk.SubmitJson(JSON.stringify({ action: 'config', data: config }));
-    $('#configModal').modal('hide');
+    callAhkSubmitJson({ action: 'config', data: config })
+      .then(() => $('#configModal').modal('hide'))
+      .catch(err => {
+        console.error('Gagal simpan config ke AHK:', err);
+        Swal.fire('Gagal simpan config', err.message || 'Koneksi JavaScript ke AHK bermasalah.', 'error');
+      });
   }
 }
 

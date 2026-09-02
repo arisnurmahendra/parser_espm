@@ -278,7 +278,11 @@
 
     <div class="d-flex">
       <h3><i class="fas fa-file-code"></i> Parser ESPM HTML</h3>
-      <i class="fs-3 text-success fa-solid fa-gear ms-auto me-0 mt-auto mb-auto" onclick="$('#configModal').modal('show')"></i>
+      <button type="button" id="ahkConnectionStatus" class="ahk-status-pill ms-auto me-2 mt-auto mb-auto" data-bs-toggle="tooltip" data-bs-title="Memeriksa koneksi JavaScript ke AHK">
+        <span id="ahkConnectionEmoji">🟡</span>
+        <span id="ahkConnectionLabel">AHK</span>
+      </button>
+      <i class="fs-3 text-success fa-solid fa-gear me-0 mt-auto mb-auto" onclick="$('#configModal').modal('show')"></i>
     </div>
 
     <ul class="nav nav-tabs mt-3" id="mainTab" role="tablist">
@@ -313,9 +317,9 @@
                 <div class="row placeholder-glow">
                   <div class="col-4">
                     <div class="text-center">
-                      <img id="dropZone" src="https://url.espm.go.id/themes/espm/assets/images/logo_pu_50x50.png" style="width: 100px !important; height: 100px !important" class="rounded" width="100" height="100" alt="open espm bpjt pu" />
+                      <img id="dropZone" src="https://espm.bpjt.pu.go.id/themes/espm/assets/images/logo_pu_50x50.png" style="width: 100px !important; height: 100px !important" class="rounded" width="100" height="100" alt="open espm bpjt pu" />
                       <br />
-                      <strong>🌐 Web Scraping </strong> url.espm.go.id laporan tindak lanjut selft assesment
+                      <strong>🌐 Web Scraping </strong> https://espm.bpjt.pu.go.id/v1-satemuan
                     </div>
                   </div>
 
@@ -545,10 +549,10 @@
                 </ol>
                 <span class="card-title"><kbd>2</kbd> 📋 Paste view-source copy element HTML</span>
                 <ol class="card-text">
-                  <li>Buka URL <code>url.espm.go.id</code></li>
+                  <li>Buka URL <code>https://espm.bpjt.pu.go.id</code></li>
                   <li>
                     Pilih
-                    <img src="https://url.espm.go.id/themes/espm/assets/icon/icon%20-%20spm.png" height="15px" alt="SPM Icon" />
+                    <img src="https://espm.bpjt.pu.go.id/themes/espm/assets/icon/icon%20-%20spm.png" height="15px" alt="SPM Icon" />
                     <strong>SPM → Self Assessment BUJT</strong>
                   </li>
                   <li>
@@ -638,7 +642,7 @@
                 <ol class="mb-0">
                   <li>Membaca seluruh baris data dari <code>#pdfTable</code>.</li>
                   <li>Memfilter baris yang memiliki URL gambar yang valid.</li>
-                  <li>Mengunduh gambar berdasarkan URL dari situs <code>url.espm.go.id</code>.</li>
+                  <li>Mengunduh gambar berdasarkan URL dari situs <code>espm.bpjt.pu.go.id</code>.</li>
                   <li>Melakukan kompresi dan menambahkan overlay teks (tanggal, lokasi, STA, jalur).</li>
                   <li
                     >Menyimpan gambar hasil akhir ke tab <b><i class="fa-solid fa-3"></i> Process Gambar</b> <code>#pathExport</code> <span class="text-decoration-line-through">dengan format sesuai <code>#filenameFormat</code></span
@@ -852,7 +856,7 @@
             <h5 class="fw-bold">📌 Nama Aplikasi</h5>
             <p
               ><strong>Self Assessment Image Processor</strong><br />
-              Aplikasi berbasis desktop dengan antarmuka web, digunakan untuk mengambil, memproses, dan mengelola data visual hasil inspeksi Self Assessment dari situs <a href="https://url.espm.go.id" target="_blank">eSPM BPJT</a>.
+              Aplikasi berbasis desktop dengan antarmuka web, digunakan untuk mengambil, memproses, dan mengelola data visual hasil inspeksi Self Assessment dari situs <a href="https://espm.bpjt.pu.go.id" target="_blank">eSPM BPJT</a>.
             </p>
 
             <h5 class="fw-bold">⏱️ Durasi Pengerjaan</h5>
@@ -866,7 +870,7 @@
 
             <h5 class="fw-bold">🎯 Tujuan Aplikasi</h5>
             <p class="mb-0"
-              >Aplikasi ini dibuat untuk memudahkan pengambilan data temuan lapangan berbasis gambar dari sistem eSPM (<a href="https://url.espm.go.id" target="_blank">https://url.espm.go.id</a>) melakukan overlay informasi penting di atas gambar, dan mengorganisasi data dalam bentuk siap
+              >Aplikasi ini dibuat untuk memudahkan pengambilan data temuan lapangan berbasis gambar dari sistem eSPM (<a href="https://espm.bpjt.pu.go.id" target="_blank">https://espm.bpjt.pu.go.id</a>) melakukan overlay informasi penting di atas gambar, dan mengorganisasi data dalam bentuk siap
               ekspor.</p
             >
             <p class="mb-0">Aplikasi ini dibuat untuk memudahkan proses:</p>
